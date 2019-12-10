@@ -101,10 +101,6 @@ class TestDataset(object):
         self.src_spk_stats = np.load(join(data_dir.replace('test', 'train'), '{}_stats.npz'.format(src_spk)))
         self.trg_spk_stats = np.load(join(data_dir.replace('test', 'train'), '{}_stats.npz'.format(trg_spk)))
         
-        self.logf0s_mean_src = self.src_spk_stats['log_f0s_mean']
-        self.logf0s_std_src = self.src_spk_stats['log_f0s_std']
-        self.logf0s_mean_trg = self.trg_spk_stats['log_f0s_mean']
-        self.logf0s_std_trg = self.trg_spk_stats['log_f0s_std']
         self.mcep_mean_src = self.src_spk_stats['coded_sps_mean']
         self.mcep_std_src = self.src_spk_stats['coded_sps_std']
         self.mcep_mean_trg = self.trg_spk_stats['coded_sps_mean']

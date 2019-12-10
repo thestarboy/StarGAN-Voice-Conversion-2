@@ -14,6 +14,7 @@ from sklearn.model_selection import train_test_split
 import glob
 from os.path import join, basename
 import subprocess
+from mel2samp import *
 
 def resample(spk, origin_wavpath, target_wavpath):
     wavfiles = [i for i in os.listdir(join(origin_wavpath, spk)) if i.endswith(".wav")]
@@ -45,32 +46,34 @@ def split_data(paths):
     return train_paths, test_paths
 
 def get_spk_world_feats(spk_fold_path, mc_dir_train, mc_dir_test, sample_rate=16000):
+
+
     paths = glob.glob(join(spk_fold_path, '*.wav'))
     spk_name = basename(spk_fold_path)
     train_paths, test_paths = split_data(paths)
-    f0s = []
     coded_sps = []
+
+    #使用waveglow的方式生成频谱
+    data_config = json.loads(data)["data_config"]
+    mel2samp = Mel2Samp(**data_config)
+
     for wav_file in train_paths:
-        f0, _, _, _, coded_sp = world_encode_wav(wav_file, fs=sample_rate)
-        f0s.append(f0)
+        coded_sp = mel2samp.get_mel(wav_file)
         coded_sps.append(coded_sp)
-    log_f0s_mean, log_f0s_std = logf0_statistics(f0s)
     coded_sps_mean, coded_sps_std = coded_sp_statistics(coded_sps)
     np.savez(join(mc_dir_train, spk_name+'_stats.npz'), 
-            log_f0s_mean=log_f0s_mean,
-            log_f0s_std=log_f0s_std,
             coded_sps_mean=coded_sps_mean,
             coded_sps_std=coded_sps_std)
     
     for wav_file in tqdm(train_paths):
         wav_nam = basename(wav_file)
-        f0, timeaxis, sp, ap, coded_sp = world_encode_wav(wav_file, fs=sample_rate)
+        coded_sp = mel2samp.get_mel(wav_file)
         normed_coded_sp = normalize_coded_sp(coded_sp, coded_sps_mean, coded_sps_std)
         np.save(join(mc_dir_train, wav_nam.replace('.wav', '.npy')), normed_coded_sp, allow_pickle=False)
     
     for wav_file in tqdm(test_paths):
         wav_nam = basename(wav_file)
-        f0, timeaxis, sp, ap, coded_sp = world_encode_wav(wav_file, fs=sample_rate)
+        coded_sp = mel2samp.get_mel(wav_file)
         normed_coded_sp = normalize_coded_sp(coded_sp, coded_sps_mean, coded_sps_std)
         np.save(join(mc_dir_test, wav_nam.replace('.wav', '.npy')), normed_coded_sp, allow_pickle=False)
     return 0
