@@ -31,6 +31,7 @@ class Solver(object):
         self.lambda_cls = config.lambda_cls
         self.lambda_rec = config.lambda_rec
         self.lambda_gp = config.lambda_gp
+        self.lambda_id = config.lambda_id
 
         # Training configurations.
         self.batch_size = config.batch_size
@@ -255,8 +256,12 @@ class Solver(object):
                 mc_reconst = self.G(mc_fake, spk_c_org)
                 g_loss_rec = torch.mean(torch.abs(mc_real - mc_reconst))
 
+                # Original-to-original domain. Gid
+                mc_id = self.G(mc_real, spk_c_org)
+                g_loss_id = torch.mean(torch.abs(mc_real - mc_id))
+
                 # Backward and optimize.
-                g_loss = g_loss_fake + self.lambda_rec * g_loss_rec + self.lambda_cls * g_loss_cls_spks
+                g_loss = g_loss_fake + self.lambda_rec * g_loss_rec + self.lambda_cls * g_loss_cls_spks + self.lambda_id * g_loss_id
                 self.reset_grad()
                 g_loss.backward()
                 self.g_optimizer.step()
@@ -265,6 +270,7 @@ class Solver(object):
                 loss['G/loss_fake'] = g_loss_fake.item()
                 loss['G/loss_rec'] = g_loss_rec.item()
                 loss['G/loss_cls_spks'] = g_loss_cls_spks.item()
+                loss['G/loss_id'] = g_loss_id.item()
 
             # =================================================================================== #
             #                                 4. Miscellaneous                                    #

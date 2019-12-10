@@ -106,7 +106,7 @@ if __name__ == '__main__':
     resample_to_16k(origin_wavpath, target_wavpath, num_workers=num_workers)
 
     # WE only use 10 speakers listed below for this experiment.
-    speaker_used = ['262', '272', '229', '232', '292', '293', '360', '361', '248', '251']
+    speaker_used = ['262', '272', '550']
     speaker_used = ['p'+i for i in speaker_used]
 
     ## Next we are to extract the acoustic features (MCEPs, lf0) and compute the corresponding stats (means, stds). 
